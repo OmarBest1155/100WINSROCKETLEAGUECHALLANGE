@@ -1,0 +1,1572 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ============ EXTRA OLD (vintage serif, self-contained local webfont) ============ */
+@font-face {
+    font-family: 'Extra Old';
+    src: url('fonts/ExtraOld.woff2') format('woff2'),
+         url('fonts/ExtraOld.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --orange: #ff5a00;
+    --orange-glow: rgba(255, 90, 0, 0.6);
+    --blue: #00b4ff;
+    --blue-glow: rgba(0, 180, 255, 0.6);
+    --blue-deep: #0077cc;
+    --dark: #070a14;
+
+    /* Single source of truth for the soccer-ball dial. Every rank icon is the
+       same square (312x312) and the rank backdrop now fills the whole card
+       (inset:0), so only the ball needs one shared size. Bump this once and
+       the card, ball, and progress ring all stay proportionate. */
+    --ball: clamp(210px, 28vw, 360px);
+}
+
+body {
+    font-family: 'Rajdhani', sans-serif;
+    background: var(--dark);
+    min-height: 100vh;
+    display: block;
+    overflow: hidden;
+    color: #fff;
+    position: relative;
+}
+
+/* subtle animated grid over everything for depth */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridDrift 24s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes gridDrift {
+    from { background-position: 0 0; }
+    to { background-position: 60px 60px; }
+}
+
+/* ============ BACKGROUND (blurred RL video + fallback) ============ */
+.fallback-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+        radial-gradient(ellipse at 20% 30%, rgba(255, 90, 0, 0.22) 0%, transparent 45%),
+        radial-gradient(ellipse at 80% 70%, rgba(0, 180, 255, 0.22) 0%, transparent 45%),
+        linear-gradient(180deg, #0a0e1a 0%, #120f26 50%, #0a0e1a 100%);
+    animation: bgShift 14s ease-in-out infinite alternate;
+}
+
+@keyframes bgShift {
+    0% { filter: hue-rotate(0deg) brightness(1); }
+    100% { filter: hue-rotate(22deg) brightness(1.12); }
+}
+
+.bg-video-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.bg-video-wrap video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100vw;
+    height: 100vh;
+    min-width: 100vw;
+    min-height: 100vh;
+    object-fit: cover;
+    /* Make it a soft, dimmed, blurred backdrop, not a video player */
+    filter: blur(14px) brightness(0.35) saturate(1.5) contrast(1.1);
+    transform: translate(-50%, -50%) scale(1.2);
+    pointer-events: none;
+    animation: bgVideoIn 1.6s ease-out both;
+}
+
+@keyframes bgVideoIn {
+    0% {
+        opacity: 0;
+        filter: blur(30px) brightness(0.1) saturate(1) contrast(1.1);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(14px) brightness(0.35) saturate(1.5) contrast(1.1);
+    }
+}
+
+/* Dark scrim for legibility */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(180deg, rgba(7, 10, 20, 0.55) 0%, rgba(7, 10, 20, 0.72) 100%);
+    pointer-events: none;
+}
+
+.bg-toggle {
+    position: relative;
+    z-index: 5;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 30px;
+    padding: 7px 18px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: all 0.3s ease;
+    margin-top: 12px;
+}
+
+.bg-toggle:hover {
+    background: rgba(0, 180, 255, 0.3);
+    border-color: var(--blue);
+    box-shadow: 0 0 16px var(--blue-glow);
+}
+
+.bg-toggle.off { color: rgba(255, 255, 255, 0.5); }
+
+/* ============ FLOATING PARTICLES ============ */
+.particles {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: floatUp linear infinite;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(110vh) scale(1); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-10vh) scale(0.3); opacity: 0; }
+}
+
+/* ============ FULL-WINDOW CONTAINER ============ */
+.container {
+    position: relative;
+    z-index: 2;
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 60px 5vw 40px;
+    background: transparent;
+    overflow: hidden;
+    animation: slideIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* staggered entrance for the main blocks */
+.container > .header { animation: blockIn 0.8s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.container > .scoreboard { animation: blockIn 0.8s 0.25s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.container > .action-area { animation: blockIn 0.8s 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes blockIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* decorative HUD corner brackets at the window edges */
+.hud {
+    position: fixed;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.hud-item { position: absolute; padding: 24px; }
+
+.hud-tl { top: 0; left: 0; }
+.hud-tr { top: 0; right: 0; }
+.hud-bl { bottom: 0; left: 0; }
+.hud-br { bottom: 0; right: 0; }
+
+/* timer + plus-one digits use a clean round zero */
+.hud-tl { font-family: 'Rajdhani', sans-serif; }
+.hud-tl span { color: var(--blue); }
+
+/* corner bracket accents */
+.hud-tl::before, .hud-tr::before, .hud-bl::before, .hud-br::before {
+    content: '';
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border: 2px solid rgba(0, 180, 255, 0.5);
+}
+.hud-tl::before { top: 16px; left: 16px; border-right: 0; border-bottom: 0; }
+.hud-tr::before { top: 16px; right: 16px; border-left: 0; border-bottom: 0; }
+.hud-bl::before { bottom: 16px; left: 16px; border-right: 0; border-top: 0; }
+.hud-br::before { bottom: 16px; right: 16px; border-left: 0; border-top: 0; }
+
+/* fx canvas for mouse-trail sparks */
+#fxCanvas {
+    position: fixed;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.header { width: 100%; margin-bottom: 20px; }
+
+/* Full-frame hero: the title spans the whole width of the window */
+.hero-frame {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+    width: 100%;
+    padding: 34px 3vw;
+    border-radius: 24px;
+    background:
+        radial-gradient(ellipse at 0% 0%, rgba(255, 90, 0, 0.20) 0%, transparent 55%),
+        radial-gradient(ellipse at 100% 100%, rgba(0, 180, 255, 0.20) 0%, transparent 55%),
+        rgba(7, 10, 20, 0.42);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    overflow: hidden;
+    animation: heroGlow 6s ease-in-out infinite;
+    backdrop-filter: blur(4px);
+}
+
+/* moving diagonal light bars across the hero frame */
+.hero-frame::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -60%;
+    width: 30%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+    transform: skewX(-20deg);
+    animation: heroSweep 4.5s ease-in-out infinite;
+}
+
+/* second, slower sweep in the team colors */
+.hero-frame::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -40%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 90, 0, 0.10), rgba(0, 180, 255, 0.10), transparent);
+    animation: heroSweep2 7s ease-in-out infinite;
+}
+
+@keyframes heroGlow {
+    0%, 100% { box-shadow: inset 0 0 40px rgba(255, 90, 0, 0.10), 0 0 60px rgba(255, 90, 0, 0.12); }
+    50% { box-shadow: inset 0 0 60px rgba(0, 180, 255, 0.14), 0 0 60px rgba(0, 180, 255, 0.12); }
+}
+
+@keyframes heroSweep {
+    0% { left: -60%; }
+    55%, 100% { left: 130%; }
+}
+
+@keyframes heroSweep2 {
+    0%, 100% { right: -40%; }
+    50% { right: 120%; }
+}
+
+/* decorative vintage ornaments flanking the title */
+.hero-ornament {
+    flex: 1;
+    height: 2px;
+    max-width: 200px;
+    background: linear-gradient(90deg, transparent, var(--orange));
+    position: relative;
+    animation: ornamentStretch 4s ease-in-out infinite;
+}
+
+@keyframes ornamentStretch {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.hero-ornament.right {
+    background: linear-gradient(90deg, var(--blue), transparent);
+}
+
+.hero-ornament::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    border: 2px solid currentColor;
+    transform: translateY(-50%) rotate(45deg);
+    background: rgba(7, 10, 20, 0.8);
+}
+
+.hero-ornament.left { color: var(--orange); }
+.hero-ornament.left::after { right: 0; }
+.hero-ornament.right { color: var(--blue); }
+.hero-ornament.right::after { left: 0; }
+
+.title {
+    font-family: 'Extra Old', 'Orbitron', serif;
+    font-size: clamp(2.2rem, 10vw, 6rem);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    text-align: center;
+    background: linear-gradient(90deg, #ff5a00, #ffd9a0, #00b4ff, #ffd9a0, #ff5a00);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 6s linear infinite;
+    filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 26px rgba(255, 90, 0, 0.35));
+}
+
+/* the "!!!!" punch after the title */
+.title .bang {
+    background: linear-gradient(180deg, #ffd700, #ff5a00);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: bangThrob 0.9s ease-in-out infinite;
+    display: inline-block;
+}
+
+@keyframes bangThrob {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255, 90, 0, 0.5)); }
+    50% { transform: scale(1.25); filter: drop-shadow(0 0 26px rgba(255, 90, 0, 0.95)); }
+}
+
+@keyframes shimmer {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+.subtitle {
+    font-size: 0.85rem;
+    letter-spacing: 8px;
+    color: rgba(255, 255, 255, 0.55);
+    text-transform: uppercase;
+    margin-top: 14px;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* ============ SCOREBOARD ============ */
+.scoreboard {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: clamp(14px, 3vw, 40px);
+    flex-wrap: wrap;
+}
+
+.player-card {
+    flex: 1;
+    min-width: 340px;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(12px, 1.6vh, 20px);
+    padding: clamp(22px, 3vh, 42px) clamp(24px, 3vw, 44px);
+    border-radius: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.45s ease;
+}
+
+/* rank-up hover: light up with the player's current rank color */
+.player-card:hover {
+    filter: drop-shadow(0 0 45px var(--rank-glow, transparent));
+    transform: translateY(-4px);
+}
+
+/* ============ RANK-PANEL CARD ============ */
+/* The card is a contained panel that frames the full-bleed blurred rank image.
+   The rank crest (inset:0) is the signature; a subtle rank-tinted frame + soft
+   glow keeps it looking like a designed panel instead of a background wash. */
+.player-card {
+    background:
+        radial-gradient(120% 90% at 50% 0%, var(--rank-glow, rgba(255, 255, 255, 0.05)) 0%, rgba(8, 11, 22, 0.55) 70%);
+    border: 1px solid color-mix(in srgb, var(--rank-color, #fff) 34%, transparent);
+    box-shadow:
+        0 18px 50px -22px rgba(0, 0, 0, 0.8),
+        0 0 40px -18px var(--rank-glow, transparent),
+        inset 0 0 60px -30px var(--rank-glow, transparent);
+}
+
+/* Player identity stays orange/blue (P1/P2); recolor is driven via CSS vars */
+.p1 { --team: var(--orange); }
+.p2 { --team: var(--blue); }
+
+.tier-badge {
+    position: absolute;
+    top: 14px;
+    left: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 5px 12px;
+    border-radius: 30px;
+    background: color-mix(in srgb, var(--rank-color, #fff) 16%, rgba(255, 255, 255, 0.05));
+    color: var(--rank-color, #fff);
+    border: 1px solid var(--rank-color, rgba(255, 255, 255, 0.15));
+    box-shadow: 0 0 12px -2px var(--rank-glow, transparent);
+    transition: all 0.4s ease;
+}
+
+/* the rank image is a soft backdrop that fits the WHOLE card — it fills the
+   card corners-to-corners behind everything, heavily blurred and dim, so the
+   rank reads as a subtle "room" rather than a floating coin. All icons are
+   the same square, so object-fit:cover keeps every rank scaled identically. */
+.ball-rank {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0.14;
+    filter: blur(18px) saturate(1.35) brightness(0.85);
+    z-index: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease, filter 0.5s ease;
+}
+
+/* keep the interactive card content above the blurred ball face */
+.player-card > .player-tag,
+.player-card > .counter-input,
+.player-card > .to-go,
+.player-card > .streak {
+    position: relative;
+    z-index: 3;
+}
+
+.tier-badge { z-index: 5; }
+
+/* spinning dashed ring + ball face: the whole ball spins when the card is hovered */
+.player-card .circle-container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.player-card:hover .ball-rank {
+    opacity: 0.26;
+    filter: blur(8px) saturate(1.5) brightness(0.95);
+}
+
+/* the whole soccer ball spins around its center when the card is hovered */
+.ball-spin {
+    transform-origin: 90px 90px;
+    transition: transform 0.4s ease;
+}
+
+.player-card:hover .ball-spin {
+    animation: ballSpin 2.2s linear infinite;
+}
+
+@keyframes ballSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* rank-up: the card backdrop swaps + blooms in */
+.ball-rank.rank-swap {
+    animation: crestPop 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes crestPop {
+    0% { opacity: 0; filter: blur(40px) saturate(1.6) brightness(1.2); }
+    55% { opacity: 0.34; filter: blur(6px) saturate(1.5) brightness(1); }
+    100% { opacity: 0.14; filter: blur(18px) saturate(1.35) brightness(0.85); }
+}
+
+/* rank-up pop animation on the badge */
+.tier-badge.rankup-pop {
+    animation: badgePop 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badgePop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.5); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+.player-tag {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    margin-top: 6px;
+    color: var(--rank-color, #fff);
+    text-shadow: 0 0 14px var(--rank-glow, transparent);
+    transition: color 0.45s ease;
+}
+
+.counter-input {
+    width: clamp(140px, 18vw, 200px);
+    padding: 12px 14px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(1.8rem, 3.4vw, 2.4rem);
+    font-weight: 700;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    color: #fff;
+    outline: none;
+    transition: all 0.3s ease;
+    font-variant-numeric: tabular-nums;
+}
+
+#counter1:focus { border-color: var(--orange); box-shadow: 0 0 20px var(--orange-glow); }
+#counter2:focus { border-color: var(--blue); box-shadow: 0 0 20px var(--blue-glow); }
+
+.counter-input::-webkit-inner-spin-button,
+.counter-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.counter-input[type="number"] { -moz-appearance: textfield; }
+
+/* ============ CIRCLES (RL soccer ball) ============ */
+/* the dial is driven by --ball (defined in :root) so it scales up with the
+   card and stays proportionate to the full-bleed rank backdrop behind it */
+.progress-circle {
+    transform: rotate(-90deg);
+    width: var(--ball);
+    height: var(--ball);
+}
+
+/* dark ball core with a subtle 3D highlight */
+.ball-core {
+    fill: url(#ballShade);
+    stroke: rgba(255, 255, 255, 0.14);
+    stroke-width: 2;
+}
+
+/* soccer-ball panel lines, drawn over the core — crisp white seams with a
+   faint dark fill so the panels read as distinct black patches on the sphere */
+.ball-lines {
+    fill: rgba(0, 0, 0, 0.28);
+    stroke: rgba(255, 255, 255, 0.34);
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    paint-order: stroke fill;
+}
+
+/* team-coloured glow on the central panel (uses the card's grad1/grad2) */
+.ball-panel-tint {
+    opacity: 0.24;
+    mix-blend-mode: screen;
+    pointer-events: none;
+}
+
+/* static lighting layers (do not spin with the ball — light source is fixed) */
+.ball-depth-overlay {
+    fill: url(#ballDepth);
+    pointer-events: none;
+}
+
+.ball-rim {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.22);
+    stroke-width: 1.2;
+    pointer-events: none;
+}
+
+.ball-specular {
+    fill: url(#ballSpec);
+    pointer-events: none;
+}
+
+/* decorative rotating dashed ring around the circle */
+.circle-ring {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.22);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 8;
+    transform-origin: 50% 50%;
+    animation: ringSpin 12s linear infinite;
+}
+
+@keyframes ringSpin {
+    to { transform: rotate(360deg); }
+}
+
+.circle-container {
+    position: relative;
+    animation: circleFloat 4.5s ease-in-out infinite;
+}
+
+@keyframes circleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.progress-circle-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.06);
+    stroke-width: 10;
+}
+
+.progress-circle-fill {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 440;
+    stroke-dashoffset: 440;
+    transition: stroke-dashoffset 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#circle1 { stroke: url(#grad1); filter: drop-shadow(0 0 10px var(--orange-glow)); }
+#circle2 { stroke: url(#grad2); filter: drop-shadow(0 0 10px var(--blue-glow)); }
+
+/* the text is wrapped in a <g transform="rotate(90 90 90)"> in the SVG, so it
+   counter-rotates around the ball center and stacks exactly where placed */
+.progress-pct {
+    fill: #fff;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: -1px;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+}
+
+.progress-sub {
+    fill: rgba(255, 255, 255, 0.6);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+.to-go {
+    font-size: 1rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 600;
+}
+
+/* card rank-up celebration (wild shake + spin) */
+.player-card.celebrate { animation: cardCelebrate 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* player winning streak flame */
+.streak {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: rgba(255, 150, 60, 0.9);
+    letter-spacing: 1px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.streak.hot { opacity: 1; }
+
+.streak .flame {
+    font-size: 1.1rem;
+    display: inline-block;
+    animation: flameFlicker 0.6s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 8px var(--rank-glow, rgba(255, 90, 0, 0.7)));
+}
+
+@keyframes flameFlicker {
+    from { transform: scale(0.9) rotate(-4deg); }
+    to { transform: scale(1.1) rotate(4deg); }
+}
+
+/* streak lights up in the player's current rank color */
+.streak { color: var(--rank-color, #fff); }
+
+@keyframes cardCelebrate {
+    0% { transform: scale(1) rotate(0deg); }
+    15% { transform: scale(1.14) rotate(-6deg); }
+    30% { transform: scale(1.02) rotate(6deg); }
+    45% { transform: scale(1.12) rotate(-5deg); }
+    60% { transform: scale(1.0) rotate(4deg); }
+    75% { transform: scale(1.06) rotate(-3deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+/* ============ CENTER BALL + VS ============ */
+.center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 14px;
+    min-width: 130px;
+}
+
+.rl-ball {
+    animation: ballBob 3s ease-in-out infinite;
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+}
+
+@keyframes ballBob {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(180deg); }
+}
+
+.vs {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, var(--orange), var(--blue));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: vsPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes vsPulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.15); }
+}
+
+.boost-row { display: flex; gap: 6px; }
+
+.boost {
+    width: 8px;
+    height: 22px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #00b4ff, #0077cc);
+    box-shadow: 0 0 8px var(--blue-glow);
+    animation: boostPulse 1.4s ease-in-out infinite;
+}
+
+.boost:nth-child(2) { animation-delay: 0.2s; height: 26px; }
+.boost:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes boostPulse {
+    0%, 100% { opacity: 0.5; transform: scaleY(0.85); }
+    50% { opacity: 1; transform: scaleY(1); }
+}
+
+/* momentum / energy bar between the players */
+.energy {
+    width: clamp(120px, 16vw, 200px);
+    margin-top: 8px;
+}
+
+.energy-track {
+    position: relative;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.energy-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 50%;
+    background: linear-gradient(90deg, var(--orange), var(--blue));
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.energy-thumb {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 20px;
+    background: #fff;
+    border-radius: 2px;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+    transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.energy-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.energy-labels span:nth-child(2) { letter-spacing: 2px; }
+
+/* ============ ACTION AREA (add + reset + plus one) ============ */
+.action-area {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 14px;
+}
+
+/* floating +1 popup above the add button */
+.plus-one {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translate(-50%, -40px);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--blue);
+    text-shadow: 0 0 14px var(--blue-glow);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.plus-one.pop { animation: plusOneRise 0.9s ease-out; }
+
+@keyframes plusOneRise {
+    0% { opacity: 0; transform: translate(-50%, -20px) scale(0.5); }
+    30% { opacity: 1; transform: translate(-50%, -50px) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -110px) scale(1); }
+}
+
+/* ============ BLUE ADD BUTTON ============ */
+.add-btn {
+    padding: 15px 52px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(135deg, #00b4ff, #0077cc);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 6px 25px var(--blue-glow);
+    transition: all 0.3s ease;
+}
+
+.add-btn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 38px var(--blue-glow);
+}
+
+.add-btn:active { transform: translateY(0) scale(0.98); }
+
+.add-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+    transition: left 0.5s ease;
+}
+
+.add-btn:hover::before { left: 100%; }
+
+/* quick tap ripple on add */
+.add-btn.pressed { animation: addPress 0.35s ease; }
+
+@keyframes addPress {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+/* ============ SIDE CHIP + SWITCH (action area) ============ */
+.side-chip {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 8px 16px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.35s ease;
+}
+.side-chip.p1 { color: var(--orange); border-color: var(--orange); background: rgba(255, 90, 0, 0.14); box-shadow: 0 0 16px var(--orange-glow); }
+.side-chip.p2 { color: var(--blue); border-color: var(--blue); background: rgba(0, 180, 255, 0.14); box-shadow: 0 0 16px var(--blue-glow); }
+
+.switch-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 40px;
+    padding: 8px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.switch-btn:hover {
+    color: #fff;
+    border-color: var(--blue);
+    background: rgba(0, 180, 255, 0.16);
+    box-shadow: 0 0 16px var(--blue-glow);
+}
+
+/* ============ LOGIN LOCK (immovable full-screen gate) ============ */
+.lock {
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, rgba(7, 10, 20, 0.7), rgba(7, 10, 20, 0.96));
+    backdrop-filter: blur(6px);
+    overflow: hidden;
+}
+
+.lock.shake { animation: lockShake 0.4s ease; }
+@keyframes lockShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+}
+
+/* the panel: a contained "security console" with a scanning top line */
+.lock-panel {
+    position: relative;
+    width: min(560px, 92vw);
+    padding: clamp(28px, 4.5vh, 44px);
+    border-radius: 26px;
+    background:
+        radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.06), rgba(10, 14, 26, 0.92) 60%),
+        rgba(8, 11, 22, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow:
+        0 30px 80px -30px rgba(0, 0, 0, 0.9),
+        inset 0 0 60px -40px rgba(0, 180, 255, 0.4);
+    overflow: hidden;
+    animation: lockPanelIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes lockPanelIn {
+    from { opacity: 0; transform: translateY(24px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* scanning light bar across the top of the panel */
+.lock-topline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--blue), var(--orange), transparent);
+    background-size: 200% auto;
+    animation: topScan 2.6s linear infinite;
+    opacity: 0.8;
+}
+@keyframes topScan {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+}
+
+.lock-step { animation: stepIn 0.4s ease both; }
+.lock-hidden { display: none; }
+@keyframes stepIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.lock-kicker {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 10px;
+}
+
+.lock-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.5rem, 4.5vw, 2.2rem);
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.lock-sub {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.5;
+    margin-bottom: 26px;
+    max-width: 40ch;
+}
+
+/* team pick buttons */
+.lock-sides {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.side-btn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 26px 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+.side-btn .side-glyph {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-align: center;
+}
+.side-btn .side-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #fff;
+}
+.side-btn .side-hint {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.45);
+}
+.side-btn:hover { transform: translateY(-3px); }
+
+.side-btn.side-p1 { border-color: rgba(255, 90, 0, 0.4); }
+.side-btn.side-p1 .side-glyph { color: var(--orange); text-shadow: 0 0 16px var(--orange-glow); }
+.side-btn.side-p1:hover { background: rgba(255, 90, 0, 0.12); border-color: var(--orange); box-shadow: 0 0 30px var(--orange-glow); }
+
+.side-btn.side-p2 { border-color: rgba(0, 180, 255, 0.4); }
+.side-btn.side-p2 .side-glyph { color: var(--blue); text-shadow: 0 0 16px var(--blue-glow); }
+.side-btn.side-p2:hover { background: rgba(0, 180, 255, 0.12); border-color: var(--blue); box-shadow: 0 0 30px var(--blue-glow); }
+
+/* passcode step */
+.lock-back {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.5);
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: color 0.2s;
+}
+.lock-back:hover { color: #fff; }
+
+.lock-badge {
+    display: inline-block;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 5px 16px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+}
+.lock-badge.b-p1 { color: var(--orange); background: rgba(255, 90, 0, 0.14); border: 1px solid var(--orange); }
+.lock-badge.b-p2 { color: var(--blue); background: rgba(0, 180, 255, 0.14); border: 1px solid var(--blue); }
+
+#lockPwTitle.b-p1 { color: var(--orange); }
+#lockPwTitle.b-p2 { color: var(--blue); }
+
+.lock-input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 6px;
+    text-align: center;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px solid rgba(255, 255, 255, 0.16);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    outline: none;
+    transition: all 0.3s ease;
+    -moz-appearance: textfield;
+}
+.lock-input::-webkit-outer-spin-button,
+.lock-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.lock-input:focus { border-color: var(--blue); box-shadow: 0 0 20px var(--blue-glow); }
+
+.lock-confirm { display: none; }
+/* in create mode, the confirm field is revealed */
+.lock-input.lock-confirm.show { display: block; }
+
+.lock-submit {
+    width: 100%;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(135deg, #00b4ff, #0077cc);
+    border: none;
+    border-radius: 50px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 25px var(--blue-glow);
+}
+.lock-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 34px var(--blue-glow); }
+.lock-submit:active { transform: translateY(0) scale(0.98); }
+
+.lock-error {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #ff5a5a;
+    text-align: center;
+    min-height: 1.2em;
+    margin: 4px 0 12px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.lock-error.show { opacity: 1; }
+
+/* cloud status note at the bottom of the panel */
+.lock-cloud {
+    margin-top: 18px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.35);
+}
+.lock-cloud.online { color: rgba(80, 255, 150, 0.8); }
+.lock-cloud.local { color: rgba(255, 200, 80, 0.75); }
+
+/* full-window white flash on rank-up / add */
+.screen-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 6;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 70%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.screen-flash.show { animation: screenFlashAnim 0.5s ease-out; }
+
+@keyframes screenFlashAnim {
+    0% { opacity: 0; }
+    20% { opacity: 0.85; }
+    100% { opacity: 0; }
+}
+
+/* ============ MATCH WON (center, above the ball) ============ */
+.match-toast {
+    position: fixed;
+    top: 47%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.4);
+    z-index: 6;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #071018;
+    background: linear-gradient(90deg, #00e0ff, #ffd700, #ff5a00);
+    background-size: 200% auto;
+    padding: 7px 20px;
+    border-radius: 30px;
+    box-shadow:
+        0 4px 14px rgba(0, 180, 255, 0.45),
+        0 0 24px rgba(255, 90, 0, 0.3);
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.match-toast.show {
+    animation: toastPop 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes toastPop {
+    0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+    18% { transform: translate(-50%, -50%) scale(1.25); opacity: 1; }
+    70% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -70%) scale(0.9); opacity: 0; }
+}
+
+/* ============ RANK UP (INSANE) ============ */
+.rankup {
+    position: fixed;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* expanding shockwave ring behind the banner */
+.rankup-shock {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 4px solid var(--gold, #ffd700);
+    opacity: 0;
+    box-shadow: 0 0 40px var(--glow, #ffd70055);
+}
+
+.rankup.show .rankup-shock { animation: shockwave 1.1s ease-out; }
+
+@keyframes shockwave {
+    0% { transform: scale(0.4); opacity: 0.9; border-width: 14px; }
+    100% { transform: scale(16); opacity: 0; border-width: 1px; }
+}
+
+/* rotating light rays behind the banner */
+.rankup-rays {
+    position: absolute;
+    inset: -40%;
+    background: repeating-conic-gradient(
+        from 0deg,
+        var(--glow, rgba(255, 215, 0, 0.08)) 0deg 6deg,
+        transparent 6deg 16deg
+    );
+    border-radius: 50%;
+    opacity: 0;
+    animation: raysSpin 6s linear infinite;
+}
+
+.rankup.show .rankup-rays { opacity: 1; }
+
+.rankup.show .rankup-inner { animation: rankBanner 1.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+/* the modal = a big RL rank medallion with the new rank name beside it */
+.rankup-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 22px 34px 22px 22px;
+    background: rgba(10, 14, 26, 0.88);
+    border: 2px solid var(--gold, #ffd700);
+    border-radius: 26px;
+    box-shadow:
+        0 0 60px var(--glow, #ffd70055),
+        inset 0 0 40px var(--glow, #ffd70033);
+    backdrop-filter: blur(8px);
+}
+
+/* the big RL rank icon, framed as a glowing circular medallion (centerpiece) */
+.rankup-icon {
+    width: 96px;
+    height: 96px;
+    padding: 10px;
+    border-radius: 50%;
+    object-fit: contain;
+    flex-shrink: 0;
+    background: radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.03));
+    border: 3px solid var(--gold, #ffd700);
+    box-shadow:
+        inset 0 0 14px rgba(0, 0, 0, 0.5),
+        0 0 30px var(--glow, #ffd70066),
+        0 0 60px var(--glow, #ffd70044);
+    animation: iconSpinIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes iconSpinIn {
+    0% { transform: rotate(-540deg) scale(0); }
+    60% { transform: rotate(40deg) scale(1.1); }
+    100% { transform: rotate(0deg) scale(1); }
+}
+
+/* the text column: label, big rank name, player pill */
+.rankup-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.rankup-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--gold, #ffd700);
+    animation: labelFlash 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes labelFlash {
+    from { opacity: 0.6; }
+    to { opacity: 1; text-shadow: 0 0 14px var(--glow, #ffd70066); }
+}
+
+.rankup-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 0 0 24px var(--glow, #ffd70066);
+}
+
+.rankup-player {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes rankBanner {
+    0% { opacity: 0; transform: translateY(40px) scale(0.5) rotateX(40deg); }
+    20% { opacity: 1; transform: translateY(0) scale(1.25) rotateX(0deg); }
+    35% { transform: scale(0.92); }
+    50% { transform: scale(1.08); }
+    80% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: translateY(-40px) scale(0.9); }
+}
+
+/* ============ INSANE WINNER OVERLAY + CONFETTI ============ */
+.congrats {
+    position: fixed;
+    inset: 0;
+    z-index: 8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, rgba(7, 10, 20, 0.4), rgba(7, 10, 20, 0.92));
+    opacity: 0;
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+}
+
+.congrats.show { opacity: 1; pointer-events: auto; }
+
+/* rotating light-ray burst behind the win text */
+.light-rays {
+    position: absolute;
+    inset: -50%;
+    z-index: -1;
+    background: repeating-conic-gradient(
+        from 0deg,
+        rgba(255, 215, 0, 0.06) 0deg 8deg,
+        transparent 8deg 20deg
+    );
+    border-radius: 50%;
+    animation: raysSpin 18s linear infinite;
+    opacity: 0;
+}
+
+.congrats.show .light-rays { opacity: 1; }
+
+@keyframes raysSpin {
+    to { transform: rotate(360deg); }
+}
+
+.congrats.show .congrats-inner { animation: winReveal 1s cubic-bezier(0.16, 1, 0.3, 1); }
+
+.congrats-inner {
+    text-align: center;
+    padding: 40px;
+}
+
+.winner-stamp {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: var(--orange);
+    border: 3px solid var(--orange);
+    border-radius: 12px;
+    display: inline-block;
+    padding: 8px 22px;
+    transform: rotate(-6deg);
+    box-shadow: 0 0 24px var(--orange-glow);
+    animation: stampIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes stampIn {
+    0% { transform: rotate(-6deg) scale(3); opacity: 0; }
+    100% { transform: rotate(-6deg) scale(1); opacity: 1; }
+}
+
+.congrats-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    font-weight: 900;
+    letter-spacing: 6px;
+    margin: 24px 0 10px;
+    background: linear-gradient(90deg, #ffd700, #fff, #00b4ff, #ffd700);
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: winTitle 2.5s linear infinite;
+}
+
+@keyframes winTitle {
+    0% { background-position: 0% center; }
+    100% { background-position: 300% center; }
+}
+
+.congrats.show .congrats-title {
+    animation: winReveal 1s cubic-bezier(0.16, 1, 0.3, 1) both, winTitle 2.5s linear 0.8s infinite;
+}
+
+.congrats-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #fff;
+    opacity: 0.9;
+}
+
+.congrats-hint {
+    display: block;
+    margin-top: 20px;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.4);
+    animation: hintBlink 1.6s ease-in-out infinite;
+}
+
+@keyframes hintBlink {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.9; }
+}
+
+@keyframes winReveal {
+    0% { opacity: 0; transform: translateY(40px) scale(0.8); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* confetti layer */
+.confetti {
+    position: fixed;
+    inset: 0;
+    z-index: 7;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.confetti-piece {
+    position: absolute;
+    top: -20px;
+    width: 12px;
+    height: 12px;
+    opacity: 0.95;
+    animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0.8; }
+}
+
+/* screen shake — intensity driven by --shake-mag (set per rank tier) */
+.shake { animation: screenShake 0.6s ease; }
+
+@keyframes screenShake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(calc(var(--shake-mag, 8px) * -1), calc(var(--shake-mag, 8px) * 0.8)); }
+    40% { transform: translate(calc(var(--shake-mag, 8px) * 1), calc(var(--shake-mag, 8px) * -0.8)); }
+    60% { transform: translate(calc(var(--shake-mag, 8px) * -0.75), calc(var(--shake-mag, 8px) * -0.5)); }
+    80% { transform: translate(calc(var(--shake-mag, 8px) * 0.75), calc(var(--shake-mag, 8px) * 0.5)); }
+}
+
+/* container flashes behind winner overlay */
+.container.win-flash { animation: winFlash 0.8s ease; }
+
+@keyframes winFlash {
+    0%, 100% { box-shadow: 0 0 60px rgba(0,0,0,0.55); }
+    50% { box-shadow: 0 0 120px #ffd700, 0 0 200px var(--blue-glow); }
+}
+
+@media (max-width: 760px) {
+    .hud-item { padding: 14px; font-size: 0.55rem; }
+    .container { padding: 48px 4vw 28px; }
+    .scoreboard { flex-direction: column; align-items: center; gap: 18px; }
+    .center { order: -1; flex-direction: row; flex-wrap: wrap; gap: 10px; }
+    .energy { width: 100%; max-width: 320px; }
+    .hero-ornament { display: none; }
+    .hero-frame { gap: 0; padding: 22px 14px; }
+    .player-card { width: 100%; max-width: 360px; }
+    .action-area { flex-wrap: wrap; justify-content: center; row-gap: 14px; }
+}
+
+@media (max-width: 420px) {
+    .hud-item.hud-bl, .hud-item.hud-br { display: none; }
+    .title { font-size: 2.4rem; }
+    .action-area { flex-wrap: wrap; justify-content: center; }
+}

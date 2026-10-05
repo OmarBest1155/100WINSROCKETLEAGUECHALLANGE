@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THIS IS ROCKET LEAGUE!!!! — First to 1000</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Blurred RL gameplay background (local mp4) + CSS fallback -->
+    <div class="fallback-bg"></div>
+    <div class="bg-video-wrap" id="bgVideoWrap">
+        <video id="bgVideo" autoplay muted loop playsinline>
+            <source src="RlIntro-BG.mp4" type="video/mp4">
+        </video>
+    </div>
+    <div class="particles" id="particles"></div>
+    <canvas id="fxCanvas"></canvas>
+
+    <!-- HUD -->
+    <div class="hud">
+        <div class="hud-item hud-tl">MATCH TIMER <span id="timer">00:00</span></div>
+        <div class="hud-item hud-tr">FIRST TO 1000</div>
+        <div class="hud-item hud-bl">PRESS [+ ADD] EVERY MATCH A PLAYER WINS</div>
+        <div class="hud-item hud-br">S24 · DUELS</div>
+    </div>
+
+    <!-- FULL-WINDOW APP -->
+    <div class="container" id="container">
+        <div class="header">
+            <div class="hero-frame">
+                <span class="hero-ornament left"></span>
+                <h1 class="title">THIS&nbsp;IS&nbsp;ROCKET&nbsp;LEAGUE<span class="bang">!!!!</span></h1>
+                <span class="hero-ornament right"></span>
+            </div>
+            <p class="subtitle">FIRST TO 1000 WINS</p>
+        </div>
+
+        <div class="scoreboard">
+            <!-- Koftawi (orange side) -->
+            <div class="player-card p1" id="card1">
+                <img class="ball-rank" id="crest1" src="image_ranks/Bronze1_rank_icon.webp" alt="rank">
+                <span class="tier-badge" id="tier1"><span class="rank-label">BRONZE 1</span></span>
+                <div class="streak" id="streak1"><span class="flame">🔥</span> <span class="streak-count">0</span></div>
+                <label class="player-tag">KOFTAWI</label>
+                <input type="number" class="counter-input" id="counter1" value="0" min="0" max="1000" step="1">
+                <div class="circle-container">
+                    <svg class="progress-circle" viewBox="0 0 180 180">
+                        <defs>
+                            <radialGradient id="ballShade" cx="38%" cy="34%" r="70%">
+                                <stop offset="0%" stop-color="#243052"/>
+                                <stop offset="55%" stop-color="#0c1020"/>
+                                <stop offset="100%" stop-color="#05070f"/>
+                            </radialGradient>
+                            <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#ff9a00"/>
+                                <stop offset="100%" stop-color="#ff5a00"/>
+                            </linearGradient>
+                            <!-- shared ball lighting (referenced by both cards) -->
+                            <radialGradient id="ballDepth" cx="36%" cy="30%" r="84%">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.20"/>
+                                <stop offset="38%" stop-color="#ffffff" stop-opacity="0"/>
+                                <stop offset="74%" stop-color="#000000" stop-opacity="0"/>
+                                <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+                            </radialGradient>
+                            <radialGradient id="ballSpec" cx="34%" cy="26%" r="26%">
+                                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75"/>
+                                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                            </radialGradient>
+                            <clipPath id="ballClip"><circle cx="90" cy="90" r="60"/></clipPath>
+                        </defs>
+                        <g class="ball-spin">
+                            <circle class="ball-core" cx="90" cy="90" r="60"></circle>
+                            <g clip-path="url(#ballClip)" class="ball-panelset">
+                                <g class="ball-lines">
+                                    <polygon points="90.0,60.0 118.5,80.7 107.6,114.3 72.4,114.3 61.5,80.7"/>
+                                    <polygon points="90.0,58.0 77.6,49.0 82.4,34.5 97.6,34.5 102.4,49.0"/>
+                                    <polygon points="120.4,80.1 125.2,65.6 140.4,65.6 145.2,80.1 132.8,89.1"/>
+                                    <polygon points="108.8,115.9 124.1,115.9 128.8,130.4 116.5,139.4 104.1,130.4"/>
+                                    <polygon points="71.2,115.9 75.9,130.4 63.5,139.4 51.2,130.4 55.9,115.9"/>
+                                    <polygon points="59.6,80.1 47.2,89.1 34.8,80.1 39.6,65.6 54.8,65.6"/>
+                                    <line x1="90.0" y1="60.0" x2="82.4" y2="34.5"/>
+                                    <line x1="118.5" y1="80.7" x2="140.4" y2="65.6"/>
+                                    <line x1="107.6" y1="114.3" x2="128.8" y2="130.4"/>
+                                    <line x1="72.4" y1="114.3" x2="63.5" y2="139.4"/>
+                                    <line x1="61.5" y1="80.7" x2="34.8" y2="80.1"/>
+                                </g>
+                                <polygon class="ball-panel-tint" fill="url(#grad1)" points="90.0,60.0 118.5,80.7 107.6,114.3 72.4,114.3 61.5,80.7"/>
+                            </g>
+                        </g>
+                        <circle class="ball-depth-overlay" cx="90" cy="90" r="60"></circle>
+                        <circle class="ball-rim" cx="90" cy="90" r="60"></circle>
+                        <circle class="ball-specular" cx="90" cy="90" r="60"></circle>
+                        <circle class="circle-ring" r="80" cx="90" cy="90"></circle>
+                        <circle class="progress-circle-bg" r="70" cx="90" cy="90"></circle>
+                        <circle class="progress-circle-fill" id="circle1" r="70" cx="90" cy="90"></circle>
+                        <g transform="rotate(90 90 90)">
+                            <text x="90" y="100" text-anchor="middle" class="progress-pct" id="pct1" font-size="46">0%</text>
+                            <text x="90" y="142" text-anchor="middle" class="progress-sub" id="sub1" font-size="15">0 / 1000</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="to-go" id="toGo1">1000 to go</div>
+            </div>
+
+            <!-- Center: ball, VS, energy bar -->
+            <div class="center">
+                <svg class="rl-ball" width="66" height="66" viewBox="0 0 100 100" aria-hidden="true">
+                    <defs>
+                        <radialGradient id="miniShade" cx="36%" cy="30%" r="78%">
+                            <stop offset="0%" stop-color="#2b3560"/>
+                            <stop offset="55%" stop-color="#12152a"/>
+                            <stop offset="100%" stop-color="#05070f"/>
+                        </radialGradient>
+                        <radialGradient id="miniSpec" cx="32%" cy="26%" r="30%">
+                            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+                            <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                        </radialGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="42" fill="url(#miniShade)" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
+                    <g stroke="rgba(255,255,255,.4)" stroke-width="1.5" fill="rgba(0,0,0,.3)" stroke-linejoin="round">
+                        <polygon points="50,30 66,43 60,62 40,62 34,43"/>
+                        <line x1="50" y1="30" x2="50" y2="12"/>
+                        <line x1="66" y1="43" x2="84" y2="40"/>
+                        <line x1="60" y1="62" x2="72" y2="78"/>
+                        <line x1="40" y1="62" x2="28" y2="78"/>
+                        <line x1="34" y1="43" x2="16" y2="40"/>
+                    </g>
+                    <circle cx="50" cy="50" r="41" fill="url(#miniSpec)" pointer-events="none"/>
+                </svg>
+                <div class="vs">VS</div>
+                <div class="energy">
+                    <div class="energy-track">
+                        <div class="energy-fill" id="energyFill"></div>
+                        <div class="energy-thumb" id="energyThumb"></div>
+                    </div>
+                    <div                         class="energy-labels"><span>KOFTAWI</span><span>MOMENTUM</span><span>OMAAAAAAAR</span></div>
+                </div>
+                <button class="bg-toggle" id="bgToggle">BG ON</button>
+            </div>
+
+            <!-- OMAAAAAAAAR (blue side) -->
+            <div class="player-card p2" id="card2">
+                <img class="ball-rank" id="crest2" src="image_ranks/Bronze1_rank_icon.webp" alt="rank">
+                <span class="tier-badge" id="tier2"><span class="rank-label">BRONZE 1</span></span>
+                <div class="streak" id="streak2"><span class="flame">🔥</span> <span class="streak-count">0</span></div>
+                <label class="player-tag">OMAAAAAAAR</label>
+                <input type="number" class="counter-input" id="counter2" value="0" min="0" max="1000" step="1">
+                <div class="circle-container">
+                    <svg class="progress-circle" viewBox="0 0 180 180">
+                        <defs>
+                            <linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#4fe0ff"/>
+                                <stop offset="100%" stop-color="#0077cc"/>
+                            </linearGradient>
+                        </defs>
+                        <g class="ball-spin">
+                            <circle class="ball-core" cx="90" cy="90" r="60"></circle>
+                            <g clip-path="url(#ballClip)" class="ball-panelset">
+                                <g class="ball-lines">
+                                    <polygon points="90.0,60.0 118.5,80.7 107.6,114.3 72.4,114.3 61.5,80.7"/>
+                                    <polygon points="90.0,58.0 77.6,49.0 82.4,34.5 97.6,34.5 102.4,49.0"/>
+                                    <polygon points="120.4,80.1 125.2,65.6 140.4,65.6 145.2,80.1 132.8,89.1"/>
+                                    <polygon points="108.8,115.9 124.1,115.9 128.8,130.4 116.5,139.4 104.1,130.4"/>
+                                    <polygon points="71.2,115.9 75.9,130.4 63.5,139.4 51.2,130.4 55.9,115.9"/>
+                                    <polygon points="59.6,80.1 47.2,89.1 34.8,80.1 39.6,65.6 54.8,65.6"/>
+                                    <line x1="90.0" y1="60.0" x2="82.4" y2="34.5"/>
+                                    <line x1="118.5" y1="80.7" x2="140.4" y2="65.6"/>
+                                    <line x1="107.6" y1="114.3" x2="128.8" y2="130.4"/>
+                                    <line x1="72.4" y1="114.3" x2="63.5" y2="139.4"/>
+                                    <line x1="61.5" y1="80.7" x2="34.8" y2="80.1"/>
+                                </g>
+                                <polygon class="ball-panel-tint" fill="url(#grad2)" points="90.0,60.0 118.5,80.7 107.6,114.3 72.4,114.3 61.5,80.7"/>
+                            </g>
+                        </g>
+                        <circle class="ball-depth-overlay" cx="90" cy="90" r="60"></circle>
+                        <circle class="ball-rim" cx="90" cy="90" r="60"></circle>
+                        <circle class="ball-specular" cx="90" cy="90" r="60"></circle>
+                        <circle class="circle-ring" r="80" cx="90" cy="90"></circle>
+                        <circle class="progress-circle-bg" r="70" cx="90" cy="90"></circle>
+                        <circle class="progress-circle-fill" id="circle2" r="70" cx="90" cy="90"></circle>
+                        <g transform="rotate(90 90 90)">
+                            <text x="90" y="100" text-anchor="middle" class="progress-pct" id="pct2" font-size="46">0%</text>
+                            <text x="90" y="142" text-anchor="middle" class="progress-sub" id="sub2" font-size="15">0 / 1000</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="to-go" id="toGo2">1000 to go</div>
+            </div>
+        </div>
+
+        <div class="action-area">
+            <div class="plus-one" id="plusOne">+1</div>
+            <button class="add-btn" id="addBtn">+ Add</button>
+            <span class="side-chip idle" id="sideChip">NO SIDE</span>
+            <button class="switch-btn" id="switchBtn" title="Switch side">SWITCH</button>
+        </div>
+    </div>
+
+    <!-- LOGIN LOCK (immovable: choose a side, then that side's passcode) -->
+    <div class="lock" id="lock">
+        <div class="lock-panel">
+            <!-- STEP 1: pick a side -->
+            <div class="lock-step" id="lockTeamStep">
+                <div class="lock-topline"></div>
+                <div class="lock-kicker">RESTRICTED ACCESS</div>
+                <h2 class="lock-title">CHOOSE YOUR SIDE</h2>
+                <p class="lock-sub">Each side has its own passcode. Pick the team you are recording wins for.</p>
+                <div class="lock-sides">
+                    <button class="side-btn side-p1" id="pickP1">
+                        <span class="side-glyph">KOFTAWI</span>
+                        <span class="side-name">ORANGE</span>
+                        <span class="side-hint">record wins for Koftawi</span>
+                    </button>
+                    <button class="side-btn side-p2" id="pickP2">
+                        <span class="side-glyph">OMAAAAAAAR</span>
+                        <span class="side-name">BLUE</span>
+                        <span class="side-hint">record wins for OMAAAAAAAAR</span>
+                    </button>
+                </div>
+                <div class="lock-cloud" id="cloudNoteTeam">Connecting to cloud…</div>
+            </div>
+
+            <!-- STEP 2: that side's passcode -->
+            <div class="lock-step lock-hidden" id="lockPwStep">
+                <div class="lock-topline"></div>
+                <button class="lock-back" id="lockBack">‹ back</button>
+                <span class="lock-badge b-p1" id="lockBadge">KOFTAWI</span>
+                <h2 class="lock-title" id="lockPwTitle">KOFTAWI PASSCODE</h2>
+                <p class="lock-sub" id="lockPwSub"></p>
+                <input type="password" class="lock-input" id="lockInput" autocomplete="off" spellcheck="false" placeholder="Passcode">
+                <input type="password" class="lock-input lock-confirm" id="lockConfirm" autocomplete="off" spellcheck="false" placeholder="Confirm passcode">
+                <div class="lock-error" id="lockError"></div>
+                <button class="lock-submit" id="lockSubmit">UNLOCK</button>
+                <div class="lock-cloud" id="cloudNotePw"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MATCH WON toast (every add) -->
+    <div class="match-toast" id="matchToast">MATCH WON</div>
+
+    <!-- Rank-up overlay (insane: shockwave + icon + name) -->
+    <div class="rankup" id="rankUp">
+        <div class="rankup-shock"></div>
+        <div class="rankup-rays"></div>
+        <div class="rankup-inner">
+            <img class="rankup-icon" id="rankUpIcon" src="image_ranks/Silver1_rank_icon.webp" alt="rank">
+            <div class="rankup-copy">
+                <span class="rankup-label">RANK UP</span>
+                <span class="rankup-name" id="rankUpName">SILVER 1</span>
+                <span class="rankup-player" id="rankUpPlayer">KOFTAWI</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insane winner overlay -->
+    <div class="congrats" id="congrats">
+        <div class="light-rays"></div>
+        <div class="congrats-inner">
+            <div class="winner-stamp">WINNER</div>
+            <h2 class="congrats-title">CONGRATULATIONS</h2>
+            <p class="congrats-text" id="congratsText">KOFTAWI reached 1000 wins!</p>
+            <small class="congrats-hint">click anywhere to dismiss · press [1] to run it back</small>
+        </div>
+    </div>
+    <div class="confetti" id="confetti"></div>
+    <div class="screen-flash" id="screenFlash"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="script.js?v=20261005a"></script>
+</body>
+</html>
